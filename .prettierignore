@@ -1,0 +1,6 @@
+out
+node_modules
+dist
+pnpm-lock.yaml
+*.log
+.husky/_

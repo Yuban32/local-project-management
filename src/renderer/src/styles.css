@@ -1,0 +1,495 @@
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+.app {
+  height: 100vh;
+}
+
+.app-body {
+  min-width: 0;
+}
+
+/* ── 侧边栏 ── */
+.app-sider {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.app-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sider-menu {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 侧边栏底部：新建分组 */
+.sider-footer {
+  flex-shrink: 0;
+  padding: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sider-add-btn {
+  width: 100%;
+  justify-content: flex-start;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.sider-add-btn:hover {
+  color: #fff;
+}
+
+.sider-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sider-logo .app-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.nav-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-count {
+  font-size: 12px;
+  opacity: 0.5;
+  margin-left: auto;
+}
+
+/* 分组项 hover：隐藏数量角标，显示编辑/删除 */
+.nav-actions {
+  display: none;
+  margin-left: auto;
+  align-items: center;
+  gap: 0;
+}
+
+.ant-menu-item:hover .nav-count {
+  display: none;
+}
+
+.ant-menu-item:hover .nav-actions {
+  display: inline-flex;
+}
+
+.nav-action.ant-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.nav-action.ant-btn:hover {
+  color: #fff;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  flex-shrink: 0;
+}
+
+.app-logo {
+  font-size: 18px;
+}
+
+.app-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.app-header-spacer {
+  flex: 1;
+}
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
+  padding: 12px 16px 16px;
+}
+
+/* ── 分组 ── */
+.group-section {
+  padding-top: 4px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px 2px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.group-header:hover .group-name {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.group-caret {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.group-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.group-count {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0 8px;
+  line-height: 18px;
+}
+
+/* ── 批量操作条 ── */
+.batch-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: rgba(79, 124, 255, 0.12);
+  border-bottom: 1px solid rgba(79, 124, 255, 0.35);
+  flex-shrink: 0;
+}
+
+.batch-info {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── 卡片选择 ── */
+.card-check {
+  margin-right: 2px;
+}
+
+.project-card.card-selected {
+  border-color: rgba(79, 124, 255, 0.65);
+  box-shadow: 0 0 0 1px rgba(79, 124, 255, 0.35);
+}
+
+.project-card .card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.project-card .card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.project-card .ant-card-body {
+  padding: 12px 16px 16px;
+}
+
+.card-path {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.card-path:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.card-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-bottom: 12px;
+  min-height: 24px;
+}
+
+.clickable-tag {
+  cursor: pointer;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+}
+
+.status-dot.running {
+  background: #52c41a;
+  box-shadow: 0 0 6px rgba(82, 196, 26, 0.9);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.status-dot.failed {
+  background: #ff4d4f;
+}
+
+.dirty-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #faad14;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── 日志抽屉 ── */
+.log-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.log-autoscroll {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.log-time {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  font-family: Menlo, Consolas, monospace;
+}
+
+.log-pre {
+  margin: 0;
+  padding: 10px 12px;
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+  background: #0d0d0d;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-family: Menlo, Consolas, 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.log-err {
+  color: #ff7875;
+}
+
+.log-time-inline {
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 11px;
+}
+
+.log-empty {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── 弹层 ── */
+.pkg-editor {
+  font-family: Menlo, Consolas, 'Courier New', monospace !important;
+  font-size: 12px !important;
+}
+
+.import-path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.import-path span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-section {
+  margin-bottom: 20px;
+}
+
+.settings-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.settings-label {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+}
+
+/* ── 设置中心 ── */
+.prefs-section {
+  margin-bottom: 24px;
+}
+
+.prefs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.prefs-row + .prefs-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.prefs-row-main {
+  min-width: 0;
+}
+
+.prefs-row-title {
+  font-weight: 600;
+}
+
+.prefs-row-desc {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.prefs-toolbar {
+  margin-top: 12px;
+}
+
+/* 通用 tab：Git 可执行文件配置 */
+.prefs-git .prefs-row-desc {
+  margin-top: 8px;
+}
+
+.git-status {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.git-status-error {
+  color: #ff7875;
+}
+
+.git-candidates {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 4px;
+  margin-top: 4px;
+}
+
+.git-candidate.ant-btn {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 4px;
+  font-size: 12px;
+}
+
+.backup-name {
+  font-family: Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+/* ── 关于 ── */
+.about-tab {
+  text-align: center;
+  padding-top: 12px;
+}
+
+.about-logo {
+  font-size: 44px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.about-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.about-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.about-desc {
+  max-width: 420px;
+  margin: 0 auto 12px !important;
+}
+
+.about-tab .ant-descriptions {
+  text-align: left;
+  max-width: 460px;
+  margin: 0 auto;
+}
