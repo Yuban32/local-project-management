@@ -51,6 +51,7 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
   const removeProject = useStore((s) => s.removeProject)
   const trashProject = useStore((s) => s.trashProject)
   const switchBranch = useStore((s) => s.switchBranch)
+  const fetchRemote = useStore((s) => s.fetchRemote)
   const openLog = useStore((s) => s.openLog)
   const openPackage = useStore((s) => s.openPackage)
   const openProjectSettings = useStore((s) => s.openProjectSettings)
@@ -114,11 +115,23 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
   )
 
   // ── 分支切换（git.root 为解析后的仓库根，可能是父级仓库） ──
+  // fetch 只更新远程跟踪分支，本地分支列表不会变化，因此分「本地 / 远程」两组展示
   const git = project.git
-  const branchMenuItems: ItemType[] = (git?.branches ?? []).map((b) => ({
-    key: b,
-    label: b === git?.currentBranch ? `${b} ✓` : b
-  }))
+  const branchMenuItems: ItemType[] = useMemo(() => {
+    const items: ItemType[] = []
+    const mark = (b: string): string => (b === git?.currentBranch ? `${b} ✓` : b)
+    const local = git?.branches ?? []
+    const remote = git?.remoteBranches ?? []
+    if (local.length > 0) {
+      items.push({ key: 'g-local', type: 'group', label: t('card.localBranches') })
+      for (const b of local) items.push({ key: b, label: mark(b) })
+    }
+    if (remote.length > 0) {
+      items.push({ key: 'g-remote', type: 'group', label: t('card.remoteBranches') })
+      for (const b of remote) items.push({ key: b, label: mark(b) })
+    }
+    return items
+  }, [git, t])
 
   const onSwitchBranch = (branch: string): void => {
     if (branch === git?.currentBranch || !git?.root) return
@@ -328,14 +341,23 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
                 {git.currentBranch ?? t('card.head')}
               </Tag>
             </Dropdown>
-            <Tooltip title={t('card.refreshBranches')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<ReloadOutlined />}
-                onClick={() => void refresh()}
-              />
-            </Tooltip>
+            <Dropdown
+                trigger={['click']}
+                menu={{
+                  items: [
+                    { key: 'refresh', label: t('card.refreshLocal') },
+                    { key: 'fetch', label: t('card.fetchRemote') }
+                  ],
+                  onClick: ({ key }) => {
+                    if (key === 'refresh') void refresh()
+                    else if (key === 'fetch') void fetchRemote(git?.root ?? '')
+                  }
+                }}
+              >
+                <Tooltip title={t('card.refreshBranches')}>
+                  <Button type="text" size="small" icon={<ReloadOutlined />} />
+                </Tooltip>
+              </Dropdown>
           </>
         ) : (
           <Tag>{t('card.notGitRepo')}</Tag>

@@ -37,7 +37,7 @@ import { getAdapter, listTypes } from './adapters'
 import { checkEditor, openEditorAt, scanEditors } from './editor'
 import { inspectDirectory, scanDirectories } from './scanner'
 import { taskManager } from './tasks'
-import { checkGitExe, gitInfoAt, gitSwitch, resolveGitRoot, scanGit } from './git'
+import { checkGitExe, gitFetch, gitInfoAt, gitSwitch, resolveGitRoot, scanGit } from './git'
 import { nvmList } from './nvm'
 import { openTerminal, terminalInfo } from './terminal'
 import { getTerminalSetting } from './config'
@@ -244,6 +244,11 @@ export function registerIpc(): void {
   ipcMain.handle('git:switch', async (_e, root: string, branch: string) => {
     if (!root) throw new Error(t('main.noGitRepo'))
     await gitSwitch(root, branch)
+    return gitInfoAt(root)
+  })
+  ipcMain.handle('git:fetch', async (_e, root: string) => {
+    if (!root) throw new Error(t('main.noGitRepo'))
+    await gitFetch(root)
     return gitInfoAt(root)
   })
   ipcMain.handle('git:scan', () => scanGit())

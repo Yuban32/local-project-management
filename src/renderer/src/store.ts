@@ -58,6 +58,8 @@ interface AppState {
   selectedIds: string[]
   /** 侧边栏当前选中的分组；null = 全部项目 */
   activeGroup: string | null
+  /** git fetch 进行中（主界面遮罩锁定，等待完成） */
+  fetchingRemote: boolean
 
   // 弹层状态
   importPrefill: ImportPrefill | null
@@ -144,6 +146,8 @@ interface AppState {
   trashProject(id: string): Promise<void>
   /** branch 切换；gitRoot 为解析后的仓库根（project.git.root） */
   switchBranch(gitRoot: string, branch: string): Promise<boolean>
+  /** 从远程获取更新（git fetch）；gitRoot 为解析后的仓库根 */
+  fetchRemote(gitRoot: string): Promise<boolean>
 }
 
 function errText(err: unknown): string {
@@ -164,6 +168,7 @@ export const useStore = create<AppState>((set, get) => ({
   search: '',
   selectedIds: [],
   activeGroup: null,
+  fetchingRemote: false,
 
   importPrefill: null,
   importOpen: false,
@@ -595,6 +600,21 @@ export const useStore = create<AppState>((set, get) => ({
     } catch (err) {
       toast.error(t('toast.branchFailed', { error: errText(err) }))
       return false
+    }
+  },
+
+  async fetchRemote(gitRoot) {
+    set({ fetchingRemote: true })
+    try {
+      await window.api.gitFetch(gitRoot)
+      await get().refresh()
+      toast.success(t('toast.gitFetched'))
+      return true
+    } catch (err) {
+      toast.error(t('toast.gitFetchFailed', { error: errText(err) }))
+      return false
+    } finally {
+      set({ fetchingRemote: false })
     }
   }
 }))

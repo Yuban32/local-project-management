@@ -130,6 +130,8 @@ export interface API {
   // ── git ──
   gitInfo(path: string): Promise<GitInfo>
   gitSwitch(path: string, branch: string): Promise<void>
+  /** 从远程获取更新（git fetch --all --prune），返回刷新后的仓库信息 */
+  gitFetch(path: string): Promise<GitInfo>
   /** 扫描 git 可执行文件（当前生效配置 + 常规安装路径候选） */
   gitScan(): Promise<GitScanInfo>
   /** 校验指定文件是否为可用的 git（--version 实测） */

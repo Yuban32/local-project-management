@@ -92,7 +92,11 @@ const enUS = {
     notGitRepo: 'Not a git repo',
     runningScripts: 'Running: {{scripts}}',
     branchTip: 'Click to switch branch',
+    localBranches: 'Local branches',
+    remoteBranches: 'Remote branches',
     refreshBranches: 'Refresh branches',
+    refreshLocal: 'Refresh local',
+    fetchRemote: 'Fetch from remote',
     pmAutoTitle: 'Auto-detected package manager (click to change)',
     pmManualTitle: 'Manually set package manager (click to change)',
     pmAuto: 'Auto ({{pm}})',
@@ -315,7 +319,10 @@ const enUS = {
     removed: 'Removed from the list',
     trashed: 'Moved to system Trash',
     branchSwitched: 'Switched to branch "{{branch}}"',
-    branchFailed: 'Branch switch failed: {{error}}'
+    branchFailed: 'Branch switch failed: {{error}}',
+    gitFetched: 'Fetched from remote',
+    gitFetchFailed: 'Fetch from remote failed: {{error}}',
+    gitFetching: 'Fetching from remote…'
   },
   main: {
     projectNotFound: 'Project not found',
@@ -330,6 +337,7 @@ const enUS = {
     runNotFound: 'Run record not found',
     emptyBranch: 'Branch name is empty',
     gitSwitchFailed: 'git switch failed',
+    gitFetchFailed: 'git fetch failed',
     noGitRepo: 'Project is not linked to a git repo',
     gitNotFound: 'git executable not found — configure it in Settings → General',
     gitExeInvalid: 'This file is not a working git executable',

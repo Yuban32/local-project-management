@@ -550,3 +550,22 @@ body {
   align-items: center;
   gap: 8px;
 }
+
+/* ── git fetch 全屏锁定遮罩 ── */
+.global-busy-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: wait;
+}
+
+.global-busy-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+}

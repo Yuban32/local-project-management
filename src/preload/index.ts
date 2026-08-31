@@ -65,6 +65,7 @@ const api: API = {
   // git
   gitInfo: (dir) => ipcRenderer.invoke('git:info', dir),
   gitSwitch: (dir, branch) => ipcRenderer.invoke('git:switch', dir, branch),
+  gitFetch: (dir) => ipcRenderer.invoke('git:fetch', dir),
   gitScan: () => ipcRenderer.invoke('git:scan'),
   gitCheck: (file) => ipcRenderer.invoke('git:check', file),
 

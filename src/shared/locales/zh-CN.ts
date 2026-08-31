@@ -93,7 +93,11 @@ const zhCN = {
     notGitRepo: '非 git 仓库',
     runningScripts: '运行中: {{scripts}}',
     branchTip: '点击快速切换分支',
+    localBranches: '本地分支',
+    remoteBranches: '远程分支',
     refreshBranches: '刷新分支列表',
+    refreshLocal: '刷新本地',
+    fetchRemote: '从远程获取',
     pmAutoTitle: '自动检测的包管理器（点击修改）',
     pmManualTitle: '手动指定的包管理器（点击修改）',
     pmAuto: '自动检测（{{pm}}）',
@@ -310,7 +314,10 @@ const zhCN = {
     removed: '已从列表移除',
     trashed: '已移入系统回收站',
     branchSwitched: '已切换到分支「{{branch}}」',
-    branchFailed: '切换分支失败: {{error}}'
+    branchFailed: '切换分支失败: {{error}}',
+    gitFetched: '已从远程获取更新',
+    gitFetchFailed: '获取远程更新失败: {{error}}',
+    gitFetching: '正在从远程获取分支…'
   },
   /** 主进程错误消息（toast 展示） */
   main: {
@@ -325,6 +332,7 @@ const zhCN = {
     runNotFound: '运行记录不存在',
     emptyBranch: '分支名为空',
     gitSwitchFailed: 'git switch 失败',
+    gitFetchFailed: 'git fetch 失败',
     noGitRepo: '该项目未关联 git 仓库',
     gitNotFound: '未找到可用的 git 可执行文件，请在 设置-通用 中配置',
     gitExeInvalid: '该文件不是可用的 git 可执行文件',

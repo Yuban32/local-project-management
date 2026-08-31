@@ -9,6 +9,7 @@ import {
   Menu,
   Select,
   Space,
+  Spin,
   Tooltip
 } from 'antd'
 import {
@@ -87,6 +88,7 @@ export default function App() {
   const openPrefs = useStore((s) => s.openPrefs)
   const openAssign = useStore((s) => s.openAssign)
   const setAppLanguage = useStore((s) => s.setAppLanguage)
+  const fetchingRemote = useStore((s) => s.fetchingRemote)
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem('launcher.siderCollapsed') === '1'
@@ -380,6 +382,13 @@ export default function App() {
       <ProjectSettingsModal />
       <GroupModals />
       <PreferencesModal />
+
+      {fetchingRemote && (
+        <div className="global-busy-mask">
+          <Spin size="large" />
+          <span className="global-busy-text">{t('toast.gitFetching')}</span>
+        </div>
+      )}
     </Layout>
   )
 }

@@ -229,7 +229,10 @@ export interface GitInfo {
   root: string | null
   currentBranch: string | null
   dirty: boolean
+  /** 本地分支（refs/heads） */
   branches: string[]
+  /** 远程跟踪分支（refs/remotes，如 origin/main；不含 origin/HEAD）。fetch 后远程新增分支会出现在这里 */
+  remoteBranches: string[]
 }
 
 /** 项目完整记录（DB 行 + 运行时富化信息） */

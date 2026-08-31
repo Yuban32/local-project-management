@@ -164,14 +164,28 @@ export function resolveGitRoot(projectPath: string, gitRoot?: string | null): st
 }
 
 export async function gitInfoAt(root: string | null): Promise<GitInfo> {
-  if (!root) return { isRepo: false, root: null, currentBranch: null, dirty: false, branches: [] }
+  if (!root)
+    return {
+      isRepo: false,
+      root: null,
+      currentBranch: null,
+      dirty: false,
+      branches: [],
+      remoteBranches: []
+    }
   const exe = await resolveGitExe()
-  if (!exe) return { isRepo: true, root, currentBranch: null, dirty: false, branches: [] }
+  if (!exe)
+    return { isRepo: true, root, currentBranch: null, dirty: false, branches: [], remoteBranches: [] }
   try {
-    const [branch, status, branches] = await Promise.all([
+    const [branch, status, branches, remoteBranches] = await Promise.all([
       pexec(exe, ['rev-parse', '--abbrev-ref', 'HEAD'], { ...GIT_OPTS, cwd: root }),
       pexec(exe, ['status', '--porcelain'], { ...GIT_OPTS, cwd: root }),
-      pexec(exe, ['branch', '--format=%(refname:short)'], { ...GIT_OPTS, cwd: root })
+      pexec(exe, ['branch', '--format=%(refname:short)'], { ...GIT_OPTS, cwd: root }),
+      // fetch 只更新远程跟踪引用、不会创建本地分支，远程分支需单独列出
+      pexec(exe, ['for-each-ref', '--format=%(refname:short)', 'refs/remotes'], {
+        ...GIT_OPTS,
+        cwd: root
+      })
     ])
     return {
       isRepo: true,
@@ -182,14 +196,39 @@ export async function gitInfoAt(root: string | null): Promise<GitInfo> {
         .split('\n')
         .map((s) => s.trim())
         .filter(Boolean)
+        .sort(),
+      remoteBranches: remoteBranches.stdout
+        .split('\n')
+        .map((s) => s.trim())
+        .filter((s) => Boolean(s) && !s.endsWith('/HEAD')) // 过滤 origin/HEAD 符号引用
         .sort()
     }
   } catch {
-    return { isRepo: true, root, currentBranch: null, dirty: false, branches: [] }
+    return {
+      isRepo: true,
+      root,
+      currentBranch: null,
+      dirty: false,
+      branches: [],
+      remoteBranches: []
+    }
   }
 }
 
-/** 切换分支；失败（如未提交冲突）抛出含 git stderr 的错误 */
+/** 判断 name 是否为远程跟踪分支（refs/remotes/<name> 存在） */
+async function isRemoteBranch(exe: string, root: string, name: string): Promise<boolean> {
+  try {
+    await pexec(exe, ['rev-parse', '--verify', '--quiet', `refs/remotes/${name}`], {
+      ...GIT_OPTS,
+      cwd: root
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** 切换分支；远程分支（origin/x）自动创建本地跟踪分支；失败抛出含 git stderr 的错误 */
 export async function gitSwitch(root: string, branch: string): Promise<void> {
   const exe = await resolveGitExe()
   if (!exe) throw new Error(t('main.gitNotFound'))
@@ -199,6 +238,33 @@ export async function gitSwitch(root: string, branch: string): Promise<void> {
     await pexec(exe, ['switch', name], { ...GIT_OPTS, cwd: root })
   } catch (err) {
     const e = err as { stderr?: string; message?: string }
-    throw new Error(e.stderr?.trim() || e.message || t('main.gitSwitchFailed'))
+    const detail = e.stderr?.trim() || e.message || t('main.gitSwitchFailed')
+    // git switch 不接受远程分支，仅在确认是远程跟踪分支时创建同名本地跟踪分支再切换；
+    // 同名本地分支已存在时退回切换本地分支。本地带斜杠分支名不会误入此路径
+    if (!(await isRemoteBranch(exe, root, name))) throw new Error(detail)
+    const local = name.slice(name.indexOf('/') + 1)
+    try {
+      await pexec(exe, ['switch', '--track', name], { ...GIT_OPTS, cwd: root })
+    } catch {
+      try {
+        await pexec(exe, ['switch', local], { ...GIT_OPTS, cwd: root })
+      } catch (localErr) {
+        // 优先透出最近的 git stderr（如本地改动冲突），否则回退原始错误
+        const le = localErr as { stderr?: string; message?: string }
+        throw new Error(le.stderr?.trim() || le.message || detail)
+      }
+    }
+  }
+}
+
+/** 从远程获取更新（git fetch --all --prune）；失败抛出含 git stderr 的错误 */
+export async function gitFetch(root: string): Promise<void> {
+  const exe = await resolveGitExe()
+  if (!exe) throw new Error(t('main.gitNotFound'))
+  try {
+    await pexec(exe, ['fetch', '--all', '--prune'], { ...GIT_OPTS, cwd: root })
+  } catch (err) {
+    const e = err as { stderr?: string; message?: string }
+    throw new Error(e.stderr?.trim() || e.message || t('main.gitFetchFailed'))
   }
 }
