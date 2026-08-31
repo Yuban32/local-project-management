@@ -1,10 +1,13 @@
 import { create } from 'zustand'
 import i18n from './i18n'
 import type {
+  AiLibrary,
+  AiWriteReport,
   AppSettings,
   AutoBackupSettings,
   GroupInfo,
   Language,
+  ProjectAiConfig,
   ProjectRecord,
   ProjectTypeConfig,
   ProjectTypeMeta,
@@ -44,6 +47,8 @@ interface AppState {
   settings: ScanSettings
   /** 应用设置（语言 / 自动备份） */
   appSettings: AppSettings
+  /** 全局 AI 库（智能体模板 + 技能库） */
+  aiLibrary: AiLibrary
   /** 全部分组（含 0 项目的分组） */
   groups: GroupInfo[]
   /** 本机终端可用性（顶栏终端选择器展示） */
@@ -97,6 +102,15 @@ interface AppState {
   /** 设置代码编辑器可执行文件路径；undefined = 恢复自动检测 */
   setEditorPath(editorPath: string | undefined): Promise<void>
 
+  // AI 库与落盘
+  refreshAiLibrary(): Promise<void>
+  /** 保存全局 AI 库；成功提示 */
+  saveAiLibrary(lib: AiLibrary): Promise<void>
+  /** 恢复内置智能体模板（技能库保留）；成功提示 */
+  restoreAiLibrary(): Promise<void>
+  /** 写入项目 AI 文件（技能 + 简报）；ai 缺省从数据库读取，传入则用当前编辑中的配置；失败返回 null 并 toast */
+  writeAiFiles(projectId: string, ai?: ProjectAiConfig): Promise<AiWriteReport | null>
+
   toggleSelect(id: string): void
   clearSelection(): void
   batchRemove(): Promise<void>
@@ -114,6 +128,8 @@ interface AppState {
   closeProjectSettings(): void
 
   startTask(projectId: string, script: string): Promise<void>
+  /** 运行自定义命令（label 作为运行/日志显示名） */
+  startCommand(projectId: string, label: string, command: string, args?: string[]): Promise<void>
   stopTask(projectId: string, runId?: number): Promise<void>
   updateProject(
     id: string,
@@ -142,6 +158,7 @@ export const useStore = create<AppState>((set, get) => ({
   types: [],
   settings: { scanDirs: [], scanDepth: 2, terminal: 'auto' },
   appSettings: { autoBackup: { enabled: false, intervalDays: 1, keep: 7 } },
+  aiLibrary: { agents: [], skills: [] },
   groups: [],
   terminalAvail: { wt: false, gitbash: null, cmd: true, powershell: true },
   search: '',
@@ -159,16 +176,17 @@ export const useStore = create<AppState>((set, get) => ({
   assignOpen: false,
 
   async init() {
-    const [types, settings, appSettings, terminalAvail, groups] = await Promise.all([
+    const [types, settings, appSettings, terminalAvail, groups, aiLibrary] = await Promise.all([
       window.api.listTypes(),
       window.api.getScanSettings(),
       window.api.getAppSettings(),
       window.api
         .terminalInfo()
         .catch(() => ({ wt: false, gitbash: null, cmd: true, powershell: true })),
-      window.api.listGroups().catch(() => [])
+      window.api.listGroups().catch(() => []),
+      window.api.getAiLibrary().catch(() => ({ agents: [], skills: [] }))
     ])
-    set({ types, settings, appSettings, terminalAvail, groups })
+    set({ types, settings, appSettings, terminalAvail, groups, aiLibrary })
     // 数据库中记录的语言优先（手动切换过）；否则维持启动时检测的系统语言
     if (appSettings.language && appSettings.language !== i18n.language) {
       applyLanguage(appSettings.language)
@@ -328,6 +346,43 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
+  // ── AI 库与落盘 ──
+
+  async refreshAiLibrary() {
+    try {
+      set({ aiLibrary: await window.api.getAiLibrary() })
+    } catch {
+      // 刷新失败保持现有库
+    }
+  },
+
+  async saveAiLibrary(lib) {
+    try {
+      set({ aiLibrary: await window.api.saveAiLibrary(lib) })
+      toast.success(t('prefs.aiSaved'))
+    } catch (err) {
+      toast.error(errText(err))
+    }
+  },
+
+  async restoreAiLibrary() {
+    try {
+      set({ aiLibrary: await window.api.restoreAiLibrary() })
+      toast.success(t('prefs.aiSaved'))
+    } catch (err) {
+      toast.error(errText(err))
+    }
+  },
+
+  async writeAiFiles(projectId, ai) {
+    try {
+      return await window.api.writeProjectAiFiles(projectId, ai)
+    } catch (err) {
+      toast.error(errText(err))
+      return null
+    }
+  },
+
   async refresh() {
     try {
       const [projects, running, groups] = await Promise.all([
@@ -477,6 +532,16 @@ export const useStore = create<AppState>((set, get) => ({
       const run = await window.api.startTask(projectId, script)
       get().applyStatus(run)
       toast.success(t('toast.started', { script }))
+    } catch (err) {
+      toast.error(errText(err))
+    }
+  },
+
+  async startCommand(projectId, label, command, args) {
+    try {
+      const run = await window.api.startCommand(projectId, label, command, args)
+      get().applyStatus(run)
+      toast.success(t('toast.started', { script: label }))
     } catch (err) {
       toast.error(errText(err))
     }

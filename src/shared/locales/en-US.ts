@@ -111,7 +111,8 @@ const enUS = {
     dirtyTitle: 'Working tree has uncommitted changes',
     dirtyContent: 'Switching to "{{branch}}" may conflict or carry changes over. Continue?',
     dirtyOk: 'Switch anyway',
-    head: 'HEAD'
+    head: 'HEAD',
+    customTooltip: 'Run custom command'
   },
   log: {
     title: 'Logs',
@@ -182,7 +183,30 @@ const enUS = {
     gitAuto: 'Auto-detect ({{root}})',
     gitAutoNone: 'Auto-detect (no repo found)',
     gitManual: 'Manual: {{path}}',
-    gitNone: 'No git (disable branch features)'
+    gitNone: 'No git (disable branch features)',
+    tabGeneral: 'General',
+    tabAi: 'AI Agent',
+    tabShortcuts: 'Shortcuts',
+    aiTabTitle: 'AI Agents & Skills',
+    aiAgents: 'Enabled agents',
+    aiAgentCommand: 'Command override',
+    aiAgentModel: 'Model override',
+    aiSkills: 'Enabled skills',
+    aiBriefFile: 'Brief file name',
+    aiRoot: 'Output root (empty = repo root / project dir)',
+    aiWrite: 'Write Project Files',
+    aiWriteHint:
+      'Writes enabled skills to .claude/skills/<id>/SKILL.md and merges the agent/skill summary into {{file}}. Idempotent; content you hand-wrote outside the managed block is kept.',
+    aiWriteReport: 'Wrote {{n}} skill(s); brief {{file}} ({{action}})',
+    shortcutsBuiltins: 'Built-in buttons',
+    shortcutsBuiltinHint:
+      'Start/Stop are lifecycle controls: hiding them leaves no in-card control for running tasks (still visible via the "⋯" menu and the running-status tag).',
+    shortcutsCustom: 'Custom commands',
+    shortcutsLabelPh: 'Button label',
+    shortcutsCmdPh: 'Command run in the project dir, e.g. pnpm lint',
+    shortcutsAdd: 'Add command',
+    shortcutsRemove: 'Remove',
+    shortcutsInvalid: 'Custom command label and command are both required'
   },
   pkg: {
     title: 'Edit package.json',
@@ -195,6 +219,7 @@ const enUS = {
     tabGeneral: 'General',
     tabAdvanced: 'Advanced',
     tabAbout: 'About',
+    tabAi: 'AI Library',
     language: 'Language',
     languageHint: 'Applies immediately; also affects error messages from the main process',
     terminal: 'Global default terminal',
@@ -252,7 +277,29 @@ const enUS = {
     importContent:
       'The selected file will overwrite all current data. This cannot be undone — consider exporting a backup first.',
     importOk: 'Import && Overwrite',
-    imported: 'Database imported and reloaded'
+    imported: 'Database imported and reloaded',
+    // AI library
+    aiAgentsTitle: 'Agent templates',
+    aiSkillsTitle: 'Skill library',
+    aiAdd: 'Add',
+    aiEdit: 'Edit',
+    aiDelete: 'Delete',
+    aiDeleteMsg: 'Delete "{{name}}"?',
+    aiName: 'Name',
+    aiKind: 'Kind',
+    aiCommand: 'Command',
+    aiModel: 'Model',
+    aiBrief: 'Brief guide text',
+    aiSkillDesc: 'Description',
+    aiSkillTags: 'Tags',
+    aiSkillBody: 'Body (SKILL.md)',
+    aiSaved: 'AI library saved',
+    aiBuiltin: 'Built-in',
+    aiRestore: 'Restore built-ins',
+    aiEditModalTitle: 'Edit agent template',
+    aiSkillEditTitle: 'Edit skill',
+    aiAgentAdd: 'New agent template',
+    aiSkillAdd: 'New skill'
   },
   about: {
     title: 'About',
@@ -300,7 +347,13 @@ const enUS = {
     backupNotFound: 'Backup file not found',
     dbImportInvalid: 'The selected file is not a valid app database (required tables missing)',
     replaceDbFailed: 'Failed to replace database: {{error}}',
-    exportFailed: 'Export failed: {{error}}'
+    exportFailed: 'Export failed: {{error}}',
+    emptyLabel: 'Command label is empty',
+    emptyCommand: 'Command is empty',
+    aiNothingEnabled: 'Enable at least one AI agent or skill before writing',
+    aiRootInvalid: 'AI output root does not exist or is invalid: {{root}}',
+    aiSkillMissing: 'Skill "{{id}}" is not in the global library; skipped',
+    aiAgentMissing: 'Agent template "{{id}}" not found; skipped'
   }
 }
 

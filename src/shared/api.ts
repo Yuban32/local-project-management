@@ -1,4 +1,6 @@
 import type {
+  AiLibrary,
+  AiWriteReport,
   AppInfo,
   AppSettings,
   BackupItem,
@@ -10,6 +12,7 @@ import type {
   GroupInfo,
   LogLine,
   NvmInfo,
+  ProjectAiConfig,
   ProjectRecord,
   ProjectTypeConfig,
   ProjectTypeMeta,
@@ -131,6 +134,28 @@ export interface API {
   gitScan(): Promise<GitScanInfo>
   /** 校验指定文件是否为可用的 git（--version 实测） */
   gitCheck(file: string): Promise<GitCheckResult>
+
+  // ── AI 库与落盘 ──
+  /** 全局 AI 库（智能体模板 + 技能库） */
+  getAiLibrary(): Promise<AiLibrary>
+  /** 保存全局 AI 库；返回清洗后的结果 */
+  saveAiLibrary(lib: AiLibrary): Promise<AiLibrary>
+  /** 恢复内置智能体模板（技能库保留） */
+  restoreAiLibrary(): Promise<AiLibrary>
+  /** 把项目启用的 agent/技能写入项目目录；ai 缺省从数据库读取，传入则用当前编辑中的配置 */
+  writeProjectAiFiles(
+    projectId: string,
+    ai?: ProjectAiConfig
+  ): Promise<AiWriteReport>
+
+  // ── 自定义命令 ──
+  /** 在项目目录运行自定义命令（label 作为运行/日志显示名） */
+  startCommand(
+    projectId: string,
+    label: string,
+    command: string,
+    args?: string[]
+  ): Promise<RunInfo>
 
   // ── 主进程推送事件 ──
   /** 订阅日志批量追加 */

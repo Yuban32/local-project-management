@@ -19,7 +19,7 @@ import { App, Button, Card, Checkbox, Dropdown, Space, Tag, Tooltip } from 'antd
 import { useShallow } from 'zustand/react/shallow'
 import { useTranslation } from 'react-i18next'
 import type { ItemType } from 'antd/es/menu/interface'
-import type { ProjectRecord } from '../../../shared/types'
+import type { CardShortcut, ProjectRecord } from '../../../shared/types'
 import { useStore } from '../store'
 
 /** 卡片启动默认脚本：常用 > 启动类 > 首个脚本 */
@@ -45,6 +45,7 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
   const running = useStore(useShallow((s) => s.running.filter((r) => r.projectId === project.id)))
   const lastFinished = useStore((s) => s.lastFinished[project.id])
   const startTask = useStore((s) => s.startTask)
+  const startCommand = useStore((s) => s.startCommand)
   const stopTask = useStore((s) => s.stopTask)
   const updateProject = useStore((s) => s.updateProject)
   const removeProject = useStore((s) => s.removeProject)
@@ -64,6 +65,13 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
   const buildScripts = useMemo(() => project.buildScripts ?? [], [project])
   const defaultScript = useMemo(() => pickDefaultScript(project), [project])
   const defaultBuild = useMemo(() => pickDefaultBuild(buildScripts), [buildScripts])
+  // 快捷方式配置（读 project prop，无需 useShallow）
+  const hiddenBuiltins = useMemo(() => project.typeConfig.cardBuiltins ?? {}, [project])
+  const customShortcuts = useMemo(() => project.typeConfig.cardShortcuts ?? [], [project])
+
+  const runShortcut = (s: CardShortcut): void => {
+    void startCommand(project.id, s.label, s.command)
+  }
 
   const runningScripts = running.map((r) => r.script)
   const failed = lastFinished?.status === 'failed'
@@ -340,86 +348,106 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
       </div>
 
       <div className="card-actions">
-        {scripts.length > 0 ? (
-          <Space.Compact>
-            <Button
-              type="primary"
-              icon={<CaretRightOutlined />}
-              disabled={!defaultScript || runningScripts.includes(defaultScript ?? '')}
-              onClick={() => void startTask(project.id, defaultScript ?? '')}
-            >
-              {defaultScript ?? t('card.start')}
-            </Button>
-            <Dropdown
-              menu={{
-                items: startMenuItems,
-                onClick: ({ key }) => void startTask(project.id, key)
-              }}
-            >
+        {hiddenBuiltins.start !== false &&
+          (scripts.length > 0 ? (
+            <Space.Compact>
               <Button
                 type="primary"
-                icon={<CaretRightFilled rotate={90} />}
-                title={t('card.pickScript')}
-              />
-            </Dropdown>
-          </Space.Compact>
-        ) : (
-          <Tooltip title={t('card.noScripts')}>
-            <Button type="primary" disabled icon={<CaretRightOutlined />}>
-              {t('card.start')}
-            </Button>
-          </Tooltip>
-        )}
+                icon={<CaretRightOutlined />}
+                disabled={!defaultScript || runningScripts.includes(defaultScript ?? '')}
+                onClick={() => void startTask(project.id, defaultScript ?? '')}
+              >
+                {defaultScript ?? t('card.start')}
+              </Button>
+              <Dropdown
+                menu={{
+                  items: startMenuItems,
+                  onClick: ({ key }) => void startTask(project.id, key)
+                }}
+              >
+                <Button
+                  type="primary"
+                  icon={<CaretRightFilled rotate={90} />}
+                  title={t('card.pickScript')}
+                />
+              </Dropdown>
+            </Space.Compact>
+          ) : (
+            <Tooltip title={t('card.noScripts')}>
+              <Button type="primary" disabled icon={<CaretRightOutlined />}>
+                {t('card.start')}
+              </Button>
+            </Tooltip>
+          ))}
 
-        {stopButton}
+        {hiddenBuiltins.stop !== false && stopButton}
 
-        {hasBuild ? (
-          <Space.Compact>
+        {hiddenBuiltins.build !== false &&
+          (hasBuild ? (
+            <Space.Compact>
+              <Button
+                icon={<AppstoreOutlined />}
+                disabled={defaultBuild !== null && runningScripts.includes(defaultBuild)}
+                onClick={() => void startTask(project.id, defaultBuild ?? '')}
+              >
+                {defaultBuild}
+              </Button>
+              <Dropdown
+                menu={{
+                  items: buildMenuItems,
+                  onClick: ({ key }) => void startTask(project.id, key)
+                }}
+              >
+                <Button icon={<DownOutlined />} title={t('card.pickBuild')} />
+              </Dropdown>
+            </Space.Compact>
+          ) : (
+            <Tooltip title={t('card.noBuild')}>
+              <Button icon={<AppstoreOutlined />} disabled>
+                {t('card.build')}
+              </Button>
+            </Tooltip>
+          ))}
+
+        {hiddenBuiltins.browser !== false && (
+          <Tooltip title={t('card.openBrowser')}>
             <Button
-              icon={<AppstoreOutlined />}
-              disabled={defaultBuild !== null && runningScripts.includes(defaultBuild)}
-              onClick={() => void startTask(project.id, defaultBuild ?? '')}
-            >
-              {defaultBuild}
-            </Button>
-            <Dropdown
-              menu={{
-                items: buildMenuItems,
-                onClick: ({ key }) => void startTask(project.id, key)
-              }}
-            >
-              <Button icon={<DownOutlined />} title={t('card.pickBuild')} />
-            </Dropdown>
-          </Space.Compact>
-        ) : (
-          <Tooltip title={t('card.noBuild')}>
-            <Button icon={<AppstoreOutlined />} disabled>
-              {t('card.build')}
-            </Button>
+              icon={<GlobalOutlined />}
+              onClick={() =>
+                void window.api
+                  .openBrowser(project.id)
+                  .then((url) => message.success(url))
+                  .catch((err: unknown) =>
+                    message.error(err instanceof Error ? err.message : String(err))
+                  )
+              }
+            />
           </Tooltip>
         )}
 
-        <Tooltip title={t('card.openBrowser')}>
-          <Button
-            icon={<GlobalOutlined />}
-            onClick={() =>
-              void window.api
-                .openBrowser(project.id)
-                .then((url) => message.success(url))
-                .catch((err: unknown) =>
-                  message.error(err instanceof Error ? err.message : String(err))
-                )
-            }
-          />
-        </Tooltip>
+        {hiddenBuiltins.logs !== false && (
+          <Tooltip title={t('card.logs')}>
+            <Button icon={<FileTextOutlined />} onClick={() => openLog(project.id)} />
+          </Tooltip>
+        )}
 
-        <Tooltip title={t('card.logs')}>
-          <Button icon={<FileTextOutlined />} onClick={() => openLog(project.id)} />
-        </Tooltip>
+        {hiddenBuiltins.editPackage !== false && (
+          <Tooltip title={t('card.editPackage')}>
+            <Button icon={<EditOutlined />} onClick={() => openPackage(project.id)} />
+          </Tooltip>
+        )}
 
-        <Tooltip title={t('card.editPackage')}>
-          <Button icon={<EditOutlined />} onClick={() => openPackage(project.id)} />
-        </Tooltip>
+        {customShortcuts.map((s) => (
+          <Tooltip key={s.id} title={t('card.customTooltip')}>
+            <Button
+              icon={<CodeOutlined />}
+              disabled={runningScripts.includes(s.label)}
+              onClick={() => runShortcut(s)}
+            >
+              {s.label}
+            </Button>
+          </Tooltip>
+        ))}
       </div>
     </Card>
   )

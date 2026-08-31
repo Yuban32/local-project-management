@@ -60,18 +60,31 @@ export class TaskManager {
     return task ? task.logBuffer.join('\n') : null
   }
 
+  /** 启动包管理器脚本（走适配器 buildSpawn 产出命令） */
   start(project: ProjectRecord, script: string): RunInfo {
-    const adapter = getAdapter(project.type)
-    const spec = adapter.buildSpawn(project, script)
+    const spec = getAdapter(project.type).buildSpawn(project, script)
+    return this.spawnTask(project, script, spec.cmd, spec.args)
+  }
 
+  /**
+   * 运行自定义命令（快捷方式）：
+   * label 作为 runs.script（日志抽屉 / 运行历史 / 卡片运行状态显示人类可读名），
+   * command 原样交给 shell:true 执行（Windows 经 cmd.exe /d /s /c），cwd = 项目目录。
+   */
+  startCommand(project: ProjectRecord, label: string, command: string, args?: string[]): RunInfo {
+    return this.spawnTask(project, label, command, args ?? [])
+  }
+
+  /** 统一 spawn 机制：去重 → 落库 → spawn 监听 → 推送 */
+  private spawnTask(project: ProjectRecord, script: string, cmd: string, args: string[]): RunInfo {
     const existing = this.listByProject(project.id).find((t) => t.script === script)
     if (existing) {
       throw new Error(t('main.scriptRunning', { script }))
     }
 
     const runId = insertRun(project.id, project.type, script, null)
-    const child = spawn(spec.cmd, spec.args, {
-      cwd: spec.cwd,
+    const child = spawn(cmd, args, {
+      cwd: project.path,
       shell: true,
       detached: process.platform !== 'win32',
       windowsHide: true,

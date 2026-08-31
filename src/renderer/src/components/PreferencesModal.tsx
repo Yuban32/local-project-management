@@ -3,6 +3,7 @@ import {
   App,
   Button,
   Descriptions,
+  Form,
   Input,
   InputNumber,
   List,
@@ -15,9 +16,16 @@ import {
   Tag,
   Typography
 } from 'antd'
-import { ExportOutlined, ImportOutlined, SaveOutlined } from '@ant-design/icons'
+import {
+  ExportOutlined,
+  ImportOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SaveOutlined
+} from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import type {
+  AgentTemplate,
   AppInfo,
   BackupItem,
   EditorCheckResult,
@@ -25,6 +33,7 @@ import type {
   GitCheckResult,
   GitScanInfo,
   Language,
+  SkillDef,
   TerminalKind
 } from '../../../shared/types'
 import { useStore } from '../store'
@@ -38,6 +47,7 @@ export default function PreferencesModal() {
   const items = [
     { key: 'general', label: t('prefs.tabGeneral'), children: <GeneralTab visible={open} /> },
     { key: 'advanced', label: t('prefs.tabAdvanced'), children: <AdvancedTab visible={open} /> },
+    { key: 'ai', label: t('prefs.tabAi'), children: <AiTab visible={open} /> },
     { key: 'about', label: t('prefs.tabAbout'), children: <AboutTab visible={open} /> }
   ]
 
@@ -608,5 +618,309 @@ function AboutTab({ visible }: { visible: boolean }) {
         ]}
       />
     </div>
+  )
+}
+
+/** AI：全局智能体模板 + 技能库管理（settings 表 'aiLibrary'） */
+function AiTab({ visible }: { visible: boolean }) {
+  const { t } = useTranslation()
+  const { message, modal } = App.useApp()
+  const aiLibrary = useStore((s) => s.aiLibrary)
+  const saveAiLibrary = useStore((s) => s.saveAiLibrary)
+  const restoreAiLibrary = useStore((s) => s.restoreAiLibrary)
+  const refreshAiLibrary = useStore((s) => s.refreshAiLibrary)
+
+  useEffect(() => {
+    if (visible) void refreshAiLibrary()
+  }, [visible, refreshAiLibrary])
+
+  const [agentDraft, setAgentDraft] = useState<AgentTemplate | null>(null)
+  const [skillDraft, setSkillDraft] = useState<SkillDef | null>(null)
+
+  const confirmDeleteAgent = (agent: AgentTemplate): void => {
+    modal.confirm({
+      title: t('prefs.aiDeleteMsg', { name: agent.name }),
+      okText: t('prefs.aiDelete'),
+      okButtonProps: { danger: true },
+      cancelText: t('common.cancel'),
+      onOk: () =>
+        void saveAiLibrary({ ...aiLibrary, agents: aiLibrary.agents.filter((a) => a.id !== agent.id) })
+    })
+  }
+
+  const confirmDeleteSkill = (skill: SkillDef): void => {
+    modal.confirm({
+      title: t('prefs.aiDeleteMsg', { name: skill.name }),
+      okText: t('prefs.aiDelete'),
+      okButtonProps: { danger: true },
+      cancelText: t('common.cancel'),
+      onOk: () =>
+        void saveAiLibrary({ ...aiLibrary, skills: aiLibrary.skills.filter((s) => s.id !== skill.id) })
+    })
+  }
+
+  const saveAgent = (): void => {
+    if (!agentDraft?.name?.trim()) {
+      message.warning(t('prefs.aiName'))
+      return
+    }
+    const draft: AgentTemplate = {
+      id: agentDraft.id || crypto.randomUUID(),
+      name: agentDraft.name.trim(),
+      kind: agentDraft.kind,
+      command: agentDraft.command?.trim() || undefined,
+      model: agentDraft.model?.trim() || undefined,
+      brief: agentDraft.brief?.trim() || undefined,
+      builtin: agentDraft.builtin === true
+    }
+    const agents = aiLibrary.agents.some((a) => a.id === draft.id)
+      ? aiLibrary.agents.map((a) => (a.id === draft.id ? draft : a))
+      : [...aiLibrary.agents, draft]
+    void saveAiLibrary({ ...aiLibrary, agents })
+    setAgentDraft(null)
+  }
+
+  const saveSkill = (): void => {
+    if (!skillDraft?.name?.trim()) {
+      message.warning(t('prefs.aiName'))
+      return
+    }
+    const draft: SkillDef = {
+      id: skillDraft.id || crypto.randomUUID(),
+      name: skillDraft.name.trim(),
+      description: skillDraft.description?.trim() ?? '',
+      body: skillDraft.body ?? '',
+      tags: skillDraft.tags && skillDraft.tags.length > 0 ? skillDraft.tags : undefined
+    }
+    const skills = aiLibrary.skills.some((s) => s.id === draft.id)
+      ? aiLibrary.skills.map((s) => (s.id === draft.id ? draft : s))
+      : [...aiLibrary.skills, draft]
+    void saveAiLibrary({ ...aiLibrary, skills })
+    setSkillDraft(null)
+  }
+
+  return (
+    <>
+      <div className="prefs-section">
+        <div className="prefs-row-title">{t('prefs.aiAgentsTitle')}</div>
+        <List
+          size="small"
+          bordered
+          dataSource={aiLibrary.agents}
+          locale={{ emptyText: t('prefs.listEmpty') }}
+          renderItem={(agent) => (
+            <List.Item
+              actions={[
+                <Button
+                  key="edit"
+                  type="link"
+                  size="small"
+                  onClick={() => setAgentDraft({ ...agent })}
+                >
+                  {t('prefs.aiEdit')}
+                </Button>,
+                <Button
+                  key="del"
+                  type="link"
+                  size="small"
+                  danger
+                  disabled={agent.builtin === true}
+                  onClick={() => confirmDeleteAgent(agent)}
+                >
+                  {t('prefs.aiDelete')}
+                </Button>
+              ]}
+            >
+              <List.Item.Meta
+                title={
+                  <span>
+                    {agent.name}
+                    {agent.builtin && (
+                      <Tag color="geekblue" style={{ marginLeft: 8 }}>
+                        {t('prefs.aiBuiltin')}
+                      </Tag>
+                    )}
+                  </span>
+                }
+                description={`${t('prefs.aiKind')}: ${agent.kind}${
+                  agent.command ? ` · ${t('prefs.aiCommand')}: ${agent.command}` : ''
+                }${agent.model ? ` · ${t('prefs.aiModel')}: ${agent.model}` : ''}`}
+              />
+            </List.Item>
+          )}
+        />
+        <div className="prefs-toolbar">
+          <Button
+            type="dashed"
+            icon={<PlusOutlined />}
+            onClick={() => setAgentDraft({ id: crypto.randomUUID(), name: '', kind: 'custom' })}
+          >
+            {t('prefs.aiAdd')}
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={() => void restoreAiLibrary()}>
+            {t('prefs.aiRestore')}
+          </Button>
+        </div>
+      </div>
+
+      <div className="prefs-section">
+        <div className="prefs-row-title">{t('prefs.aiSkillsTitle')}</div>
+        <List
+          size="small"
+          bordered
+          dataSource={aiLibrary.skills}
+          locale={{ emptyText: t('prefs.listEmpty') }}
+          renderItem={(skill) => (
+            <List.Item
+              actions={[
+                <Button
+                  key="edit"
+                  type="link"
+                  size="small"
+                  onClick={() => setSkillDraft({ ...skill, tags: skill.tags ? [...skill.tags] : [] })}
+                >
+                  {t('prefs.aiEdit')}
+                </Button>,
+                <Button
+                  key="del"
+                  type="link"
+                  size="small"
+                  danger
+                  onClick={() => confirmDeleteSkill(skill)}
+                >
+                  {t('prefs.aiDelete')}
+                </Button>
+              ]}
+            >
+              <List.Item.Meta
+                title={
+                  <span>
+                    {skill.name}
+                    {skill.tags?.map((tg) => (
+                      <Tag key={tg} style={{ marginLeft: 4 }}>
+                        {tg}
+                      </Tag>
+                    ))}
+                  </span>
+                }
+                description={skill.description}
+              />
+            </List.Item>
+          )}
+        />
+        <div className="prefs-toolbar">
+          <Button
+            type="dashed"
+            icon={<PlusOutlined />}
+            onClick={() =>
+              setSkillDraft({ id: crypto.randomUUID(), name: '', description: '', body: '', tags: [] })
+            }
+          >
+            {t('prefs.aiAdd')}
+          </Button>
+        </div>
+      </div>
+
+      {/* 智能体模板 编辑/新增 */}
+      <Modal
+        open={agentDraft !== null}
+        onCancel={() => setAgentDraft(null)}
+        onOk={saveAgent}
+        okText={t('common.save')}
+        cancelText={t('common.cancel')}
+        title={t('prefs.aiEditModalTitle')}
+        width={480}
+        destroyOnClose
+      >
+        {agentDraft && (
+          <Form layout="vertical" style={{ marginTop: 12 }}>
+            <Form.Item label={t('prefs.aiName')} required>
+              <Input
+                value={agentDraft.name}
+                onChange={(e) => setAgentDraft({ ...agentDraft, name: e.target.value })}
+                placeholder="Claude Code"
+              />
+            </Form.Item>
+            <Form.Item label={t('prefs.aiKind')}>
+              <Radio.Group
+                value={agentDraft.kind}
+                onChange={(e) => setAgentDraft({ ...agentDraft, kind: e.target.value })}
+              >
+                <Radio value="claude">Claude</Radio>
+                <Radio value="cursor">Cursor</Radio>
+                <Radio value="custom">Custom</Radio>
+              </Radio.Group>
+            </Form.Item>
+            <Form.Item label={t('prefs.aiCommand')}>
+              <Input
+                value={agentDraft.command ?? ''}
+                onChange={(e) => setAgentDraft({ ...agentDraft, command: e.target.value })}
+                placeholder="claude"
+              />
+            </Form.Item>
+            <Form.Item label={t('prefs.aiModel')}>
+              <Input
+                value={agentDraft.model ?? ''}
+                onChange={(e) => setAgentDraft({ ...agentDraft, model: e.target.value })}
+                placeholder="claude-opus-5"
+              />
+            </Form.Item>
+            <Form.Item label={t('prefs.aiBrief')}>
+              <Input.TextArea
+                value={agentDraft.brief ?? ''}
+                onChange={(e) => setAgentDraft({ ...agentDraft, brief: e.target.value })}
+                rows={3}
+              />
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
+
+      {/* 技能 编辑/新增 */}
+      <Modal
+        open={skillDraft !== null}
+        onCancel={() => setSkillDraft(null)}
+        onOk={saveSkill}
+        okText={t('common.save')}
+        cancelText={t('common.cancel')}
+        title={t('prefs.aiSkillEditTitle')}
+        width={520}
+        destroyOnClose
+      >
+        {skillDraft && (
+          <Form layout="vertical" style={{ marginTop: 12 }}>
+            <Form.Item label={t('prefs.aiName')} required>
+              <Input
+                value={skillDraft.name}
+                onChange={(e) => setSkillDraft({ ...skillDraft, name: e.target.value })}
+              />
+            </Form.Item>
+            <Form.Item label={t('prefs.aiSkillDesc')}>
+              <Input.TextArea
+                value={skillDraft.description}
+                onChange={(e) => setSkillDraft({ ...skillDraft, description: e.target.value })}
+                rows={2}
+              />
+            </Form.Item>
+            <Form.Item label={t('prefs.aiSkillTags')}>
+              <Select
+                mode="tags"
+                value={skillDraft.tags ?? []}
+                onChange={(v: string[]) => setSkillDraft({ ...skillDraft, tags: v })}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+            <Form.Item label={t('prefs.aiSkillBody')}>
+              <Input.TextArea
+                className="ai-skill-body"
+                value={skillDraft.body}
+                onChange={(e) => setSkillDraft({ ...skillDraft, body: e.target.value })}
+                rows={8}
+              />
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
+    </>
   )
 }

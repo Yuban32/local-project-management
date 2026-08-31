@@ -68,6 +68,16 @@ const api: API = {
   gitScan: () => ipcRenderer.invoke('git:scan'),
   gitCheck: (file) => ipcRenderer.invoke('git:check', file),
 
+  // AI 库与落盘
+  getAiLibrary: () => ipcRenderer.invoke('aiLibrary:get'),
+  saveAiLibrary: (lib) => ipcRenderer.invoke('aiLibrary:save', lib),
+  restoreAiLibrary: () => ipcRenderer.invoke('aiLibrary:restore'),
+  writeProjectAiFiles: (projectId, ai) => ipcRenderer.invoke('project:writeAiFiles', projectId, ai),
+
+  // 自定义命令
+  startCommand: (projectId, label, command, args) =>
+    ipcRenderer.invoke('task:startCommand', projectId, label, command, args),
+
   // 事件
   onLog: (cb) => {
     const handler = (_e: IpcRendererEvent, lines: LogLine[]): void => cb(lines)

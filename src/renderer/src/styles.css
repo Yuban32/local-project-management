@@ -493,3 +493,60 @@ body {
   max-width: 460px;
   margin: 0 auto;
 }
+
+/* ── 项目设置 · AI Agent / 快捷命令 ── */
+.ai-agent-override-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.ai-agent-override-name {
+  width: 110px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-skill-body {
+  font-family: Menlo, Consolas, 'Courier New', monospace !important;
+  font-size: 12px !important;
+}
+
+.shortcuts-builtins {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.shortcuts-builtin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shortcuts-builtin-row + .shortcuts-builtin-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+}
+
+.shortcuts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.shortcuts-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

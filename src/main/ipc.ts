@@ -1,7 +1,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { app, ipcMain, dialog, shell, BrowserWindow } from 'electron'
-import { getScanSettings, saveScanSettings, getAppSettings, saveAppSettings } from './config'
+import {
+  getScanSettings,
+  saveScanSettings,
+  getAppSettings,
+  saveAppSettings,
+  getAiLibrary,
+  saveAiLibrary,
+  restoreDefaultAgents
+} from './config'
+import { writeProjectAiFiles } from './aiWriter'
 import {
   createGroup,
   deleteGroup,
@@ -34,7 +43,14 @@ import { openTerminal, terminalInfo } from './terminal'
 import { getTerminalSetting } from './config'
 import { openProjectInBrowser } from './browser'
 import { t } from './i18n'
-import type { AppSettings, ProjectRecord, ProjectTypeConfig, ScanSettings } from '../shared/types'
+import type {
+  AiLibrary,
+  AppSettings,
+  ProjectAiConfig,
+  ProjectRecord,
+  ProjectTypeConfig,
+  ScanSettings
+} from '../shared/types'
 
 /** 富化项目信息：脚本、包管理器探测、git 状态（每次列表刷新实时读取） */
 async function enrich(record: ProjectRecord): Promise<ProjectRecord> {
@@ -185,6 +201,16 @@ export function registerIpc(): void {
     if (!record) throw new Error(t('main.projectNotFound'))
     return taskManager.start(record, script)
   })
+  ipcMain.handle(
+    'task:startCommand',
+    (_e, projectId: string, label: string, command: string, args?: string[]) => {
+      const record = getProject(projectId)
+      if (!record) throw new Error(t('main.projectNotFound'))
+      if (!label?.trim()) throw new Error(t('main.emptyLabel'))
+      if (!command?.trim()) throw new Error(t('main.emptyCommand'))
+      return taskManager.startCommand(record, label.trim(), command.trim(), args)
+    }
+  )
   ipcMain.handle('task:stop', (_e, projectId: string, runId?: number) => {
     taskManager.stop(projectId, runId)
   })
@@ -195,6 +221,14 @@ export function registerIpc(): void {
     if (!run) throw new Error(t('main.runNotFound'))
     return getLogs(runId)
   })
+
+  // ── AI 库与落盘 ──
+  ipcMain.handle('aiLibrary:get', () => getAiLibrary())
+  ipcMain.handle('aiLibrary:save', (_e, lib: AiLibrary) => saveAiLibrary(lib))
+  ipcMain.handle('aiLibrary:restore', () => restoreDefaultAgents())
+  ipcMain.handle('project:writeAiFiles', (_e, projectId: string, ai?: ProjectAiConfig) =>
+    writeProjectAiFiles(projectId, ai)
+  )
 
   // ── 浏览器 / 文件 ──
   ipcMain.handle('browser:open', (_e, projectId: string) => openProjectInBrowser(projectId))

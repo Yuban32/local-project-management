@@ -110,7 +110,8 @@ const zhCN = {
     dirtyTitle: '工作区有未提交的更改',
     dirtyContent: '切换到「{{branch}}」可能产生冲突或携带更改，确定继续？',
     dirtyOk: '继续切换',
-    head: 'HEAD'
+    head: 'HEAD',
+    customTooltip: '运行自定义命令'
   },
   log: {
     title: '日志',
@@ -181,7 +182,29 @@ const zhCN = {
     gitAuto: '自动检测（{{root}}）',
     gitAutoNone: '自动检测（未检测到仓库）',
     gitManual: '手动指定：{{path}}',
-    gitNone: '不关联 git（禁用分支功能）'
+    gitNone: '不关联 git（禁用分支功能）',
+    tabGeneral: '通用',
+    tabAi: 'AI Agent',
+    tabShortcuts: '快捷命令',
+    aiTabTitle: 'AI 智能体与技能',
+    aiAgents: '启用的智能体',
+    aiAgentCommand: '命令覆盖',
+    aiAgentModel: '模型覆盖',
+    aiSkills: '启用的技能',
+    aiBriefFile: '项目简报文件名',
+    aiRoot: '落盘根目录（留空 = 仓库根 / 项目目录）',
+    aiWrite: '写入项目文件',
+    aiWriteHint:
+      '将把启用的技能写入 .claude/skills/<id>/SKILL.md，并把智能体与技能汇总合并到 {{file}}；重复写入幂等，不会覆盖你手写的其余内容。',
+    aiWriteReport: '已写入 {{n}} 个技能；简报 {{file}}（{{action}}）',
+    shortcutsBuiltins: '内置按钮',
+    shortcutsBuiltinHint: '「启动 / 停止」是生命周期开关：隐藏后卡片上将无法直接控制运行中任务（仍可通过「⋯」菜单与运行状态标签查看）。',
+    shortcutsCustom: '自定义命令',
+    shortcutsLabelPh: '按钮名称',
+    shortcutsCmdPh: '项目目录下执行的命令，如 pnpm lint',
+    shortcutsAdd: '添加命令',
+    shortcutsRemove: '删除',
+    shortcutsInvalid: '自定义命令的名称与命令均不能为空'
   },
   pkg: {
     title: '修改 package.json',
@@ -194,6 +217,7 @@ const zhCN = {
     tabGeneral: '通用',
     tabAdvanced: '高级',
     tabAbout: '关于',
+    tabAi: 'AI 库',
     language: '界面语言',
     languageHint: '切换后立即生效，同时影响主进程的错误提示',
     terminal: '全局默认终端',
@@ -248,7 +272,29 @@ const zhCN = {
     importTitle: '导入数据库？',
     importContent: '将用所选文件覆盖当前全部数据，且不可撤销。建议先「导出数据库」留一份备份。',
     importOk: '导入并覆盖',
-    imported: '数据库导入完成，数据已重新加载'
+    imported: '数据库导入完成，数据已重新加载',
+    // AI 库
+    aiAgentsTitle: '智能体模板',
+    aiSkillsTitle: '技能库',
+    aiAdd: '添加',
+    aiEdit: '编辑',
+    aiDelete: '删除',
+    aiDeleteMsg: '确认删除「{{name}}」？',
+    aiName: '名称',
+    aiKind: '类型',
+    aiCommand: '启动命令',
+    aiModel: '模型',
+    aiBrief: '简报引导文案',
+    aiSkillDesc: '描述',
+    aiSkillTags: '标签',
+    aiSkillBody: '内容（SKILL.md 正文）',
+    aiSaved: 'AI 库已保存',
+    aiBuiltin: '内置',
+    aiRestore: '恢复内置模板',
+    aiEditModalTitle: '编辑智能体模板',
+    aiSkillEditTitle: '编辑技能',
+    aiAgentAdd: '新增智能体模板',
+    aiSkillAdd: '新增技能'
   },
   about: {
     title: '关于',
@@ -296,7 +342,13 @@ const zhCN = {
     backupNotFound: '备份文件不存在',
     dbImportInvalid: '所选文件不是有效的应用数据库（缺少必需的数据表）',
     replaceDbFailed: '数据替换失败: {{error}}',
-    exportFailed: '导出失败: {{error}}'
+    exportFailed: '导出失败: {{error}}',
+    emptyLabel: '命令名称为空',
+    emptyCommand: '命令内容为空',
+    aiNothingEnabled: '请至少启用一个 AI 智能体或技能后再写入',
+    aiRootInvalid: 'AI 落盘根目录不存在或无效：{{root}}',
+    aiSkillMissing: '技能「{{id}}」不在全局技能库中，已跳过',
+    aiAgentMissing: '智能体模板「{{id}}」不存在，已跳过'
   }
 }
 

@@ -133,8 +133,94 @@ export interface NodeProjectConfig {
   nodeVersion?: string
 }
 
+/** 内置卡片操作按钮标识（快捷方式显隐开关的 key） */
+export type BuiltinCardToggle = 'start' | 'stop' | 'build' | 'browser' | 'logs' | 'editPackage'
+
+/** 全局 AI 技能定义（settings 表 'aiLibrary' key 的 skills 数组条目） */
+export interface SkillDef {
+  id: string
+  /** 技能名（写入 SKILL.md frontmatter 的 name） */
+  name: string
+  /** 一句话描述（frontmatter description） */
+  description: string
+  /** SKILL.md 正文（Markdown，由维护者全文维护） */
+  body: string
+  tags?: string[]
+}
+
+/** 全局 AI 智能体模板（内置 Claude Code / Cursor + 用户自定义） */
+export interface AgentTemplate {
+  id: string
+  /** 展示名（专有名词不翻译） */
+  name: string
+  kind: 'claude' | 'cursor' | 'custom'
+  /** 建议启动命令（写入简报供参考） */
+  command?: string
+  model?: string
+  /** 写入项目简报的一段引导文案；空 = 用模板默认 */
+  brief?: string
+  /** 内置条目：UI 禁删 */
+  builtin?: boolean
+}
+
+/** 全局 AI 库（settings 表 'aiLibrary' key） */
+export interface AiLibrary {
+  agents: AgentTemplate[]
+  skills: SkillDef[]
+}
+
+/** 单 agent 的项目级覆盖（模板关键字的 command / model） */
+export interface AgentOverride {
+  command?: string
+  model?: string
+}
+
+/** 项目级 AI 配置（落入 typeConfig.ai） */
+export interface ProjectAiConfig {
+  /** 全局模板库中选中的 agent 模板 id */
+  enabledAgentIds: string[]
+  /** 全局技能库中选中的技能 id */
+  enabledSkillIds: string[]
+  /** key = agent 模板 id */
+  overrides?: Record<string, AgentOverride>
+  /** 简报文件名；缺省 'CLAUDE.md' */
+  briefFile?: 'CLAUDE.md' | 'AGENTS.md'
+  /** 落盘根目录；缺省 = 仓库根（向上解析），非仓库 = 项目目录 */
+  root?: string
+}
+
+/** 自定义命令快捷按钮（落入 typeConfig.cardShortcuts） */
+export interface CardShortcut {
+  id: string
+  /** 按钮文案（用户数据，不走 i18n） */
+  label: string
+  /** 项目目录下执行的原始命令（shell:true，含参数） */
+  command: string
+}
+
+/** 各类型通用项目扩展：避免侵入 NodeProjectConfig 的属性面 */
+export interface ProjectExtras {
+  ai?: ProjectAiConfig
+  cardShortcuts?: CardShortcut[]
+  /** 内置按钮显隐：undefined/true = 显示，false = 隐藏 */
+  cardBuiltins?: Partial<Record<BuiltinCardToggle, boolean>>
+}
+
 /** 各项目类型通用结构：类型专属字段放这里，避免侵入通用表结构 */
-export type ProjectTypeConfig = NodeProjectConfig & Record<string, unknown>
+export type ProjectTypeConfig = NodeProjectConfig & ProjectExtras & Record<string, unknown>
+
+/** AI 文件落盘结果（IPC 'project:writeAiFiles' 返回） */
+export interface AiWriteReport {
+  /** 实际写入的根目录 */
+  root: string
+  briefFile: 'CLAUDE.md' | 'AGENTS.md'
+  briefAction: 'created' | 'updated' | 'appended'
+  briefPath: string
+  skills: { id: string; name: string; path: string; action: 'created' | 'updated' }[]
+  /** 写入简报的 agent 名 */
+  agents: string[]
+  warnings: string[]
+}
 
 /** git 信息 */
 export interface GitInfo {
