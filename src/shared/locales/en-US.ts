@@ -94,6 +94,8 @@ const enUS = {
     branchTip: 'Click to switch branch',
     localBranches: 'Local branches',
     remoteBranches: 'Remote branches',
+    searchBranches: 'Search branches…',
+    noBranchMatch: 'No matching branch',
     refreshBranches: 'Refresh branches',
     refreshLocal: 'Refresh local',
     fetchRemote: 'Fetch from remote',

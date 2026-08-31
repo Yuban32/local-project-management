@@ -68,6 +68,7 @@ export default function App() {
   const { t, i18n } = useTranslation()
   const ready = useStore((s) => s.ready)
   const projects = useStore((s) => s.projects)
+  const types = useStore((s) => s.types)
   const search = useStore((s) => s.search)
   const setSearch = useStore((s) => s.setSearch)
   const init = useStore((s) => s.init)
@@ -110,15 +111,35 @@ export default function App() {
   }, [])
 
   const keyword = search.trim().toLowerCase()
-  const filtered = useMemo(
-    () =>
-      keyword
-        ? projects.filter(
-            (p) => p.name.toLowerCase().includes(keyword) || p.path.toLowerCase().includes(keyword)
-          )
-        : projects,
-    [projects, keyword]
-  )
+  /** 搜索过滤：匹配卡片上可见的各类信息（名称/路径/分组/脚本/包管理器/分支等） */
+  const filtered = useMemo(() => {
+    if (!keyword) return projects
+    const typeLabel = (id: string): string => types.find((x) => x.id === id)?.label ?? ''
+    const searchText = (p: ProjectRecord): string =>
+      [
+        p.name,
+        p.path,
+        p.groupName,
+        p.type,
+        typeLabel(p.type),
+        p.typeConfig.packageManager,
+        p.detectedPackageManager,
+        p.typeConfig.nodeVersion,
+        ...(p.scripts ?? []),
+        ...(p.startScripts ?? []),
+        ...(p.buildScripts ?? []),
+        ...(p.typeConfig.favoriteScripts ?? []),
+        ...(p.typeConfig.cardShortcuts ?? []).flatMap((s) => [s.label, s.command]),
+        p.git?.currentBranch,
+        ...(p.git?.branches ?? []),
+        ...(p.git?.remoteBranches ?? []),
+        p.git?.root
+      ]
+        .filter((x): x is string => typeof x === 'string' && x.length > 0)
+        .join(' ')
+        .toLowerCase()
+    return projects.filter((p) => searchText(p).includes(keyword))
+  }, [projects, keyword, types])
   const groups = useMemo(() => groupProjects(filtered), [filtered])
   const selectedProjects = projects.filter((p) => selectedIds.includes(p.id))
 

@@ -259,6 +259,20 @@ body {
   cursor: pointer;
 }
 
+/* 分支下拉：顶部搜索框 + 可滚动分支列表 */
+.branch-picker {
+  padding: 4px;
+  min-width: 220px;
+}
+.branch-picker .ant-input-affix-wrapper {
+  width: 100%;
+  margin-bottom: 4px;
+}
+.branch-picker .ant-dropdown-menu {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
 .status-dot {
   width: 8px;
   height: 8px;

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AppstoreOutlined,
   CaretRightFilled,
@@ -13,9 +13,11 @@ import {
   GlobalOutlined,
   MoreOutlined,
   ReloadOutlined,
+  SearchOutlined,
   StopOutlined
 } from '@ant-design/icons'
-import { App, Button, Card, Checkbox, Dropdown, Space, Tag, Tooltip } from 'antd'
+import { App, Button, Card, Checkbox, Dropdown, Input, Space, Tag, Tooltip } from 'antd'
+import type { InputRef } from 'antd'
 import { useShallow } from 'zustand/react/shallow'
 import { useTranslation } from 'react-i18next'
 import type { ItemType } from 'antd/es/menu/interface'
@@ -117,11 +119,20 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
   // ── 分支切换（git.root 为解析后的仓库根，可能是父级仓库） ──
   // fetch 只更新远程跟踪分支，本地分支列表不会变化，因此分「本地 / 远程」两组展示
   const git = project.git
+  const [branchOpen, setBranchOpen] = useState(false)
+  const [branchQuery, setBranchQuery] = useState('')
+  const branchInputRef = useRef<InputRef>(null)
+  useEffect(() => {
+    if (branchOpen) branchInputRef.current?.focus()
+  }, [branchOpen])
+
   const branchMenuItems: ItemType[] = useMemo(() => {
-    const items: ItemType[] = []
+    const q = branchQuery.trim().toLowerCase()
+    const match = (b: string): boolean => !q || b.toLowerCase().includes(q)
     const mark = (b: string): string => (b === git?.currentBranch ? `${b} ✓` : b)
-    const local = git?.branches ?? []
-    const remote = git?.remoteBranches ?? []
+    const local = (git?.branches ?? []).filter(match)
+    const remote = (git?.remoteBranches ?? []).filter(match)
+    const items: ItemType[] = []
     if (local.length > 0) {
       items.push({ key: 'g-local', type: 'group', label: t('card.localBranches') })
       for (const b of local) items.push({ key: b, label: mark(b) })
@@ -130,8 +141,11 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
       items.push({ key: 'g-remote', type: 'group', label: t('card.remoteBranches') })
       for (const b of remote) items.push({ key: b, label: mark(b) })
     }
+    if (items.length === 0) {
+      items.push({ key: '__no-match', label: t('card.noBranchMatch'), disabled: true })
+    }
     return items
-  }, [git, t])
+  }, [git, branchQuery, t])
 
   const onSwitchBranch = (branch: string): void => {
     if (branch === git?.currentBranch || !git?.root) return
@@ -329,8 +343,34 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
         {git?.isRepo ? (
           <>
             <Dropdown
-              menu={{ items: branchMenuItems, onClick: ({ key }) => onSwitchBranch(key) }}
               trigger={['click']}
+              open={branchOpen}
+              onOpenChange={(open) => {
+                setBranchOpen(open)
+                if (open) setBranchQuery('')
+              }}
+              popupRender={(menu) => (
+                <div className="branch-picker">
+                  <Input
+                    ref={branchInputRef}
+                    allowClear
+                    size="small"
+                    placeholder={t('card.searchBranches')}
+                    prefix={<SearchOutlined />}
+                    value={branchQuery}
+                    onChange={(e) => setBranchQuery(e.target.value)}
+                  />
+                  {menu}
+                </div>
+              )}
+              menu={{
+                items: branchMenuItems,
+                onClick: ({ key }) => {
+                  if (key === '__no-match' || key.startsWith('g-')) return
+                  setBranchOpen(false)
+                  onSwitchBranch(key)
+                }
+              }}
             >
               <Tag
                 className="clickable-tag"
@@ -342,22 +382,22 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
               </Tag>
             </Dropdown>
             <Dropdown
-                trigger={['click']}
-                menu={{
-                  items: [
-                    { key: 'refresh', label: t('card.refreshLocal') },
-                    { key: 'fetch', label: t('card.fetchRemote') }
-                  ],
-                  onClick: ({ key }) => {
-                    if (key === 'refresh') void refresh()
-                    else if (key === 'fetch') void fetchRemote(git?.root ?? '')
-                  }
-                }}
-              >
-                <Tooltip title={t('card.refreshBranches')}>
-                  <Button type="text" size="small" icon={<ReloadOutlined />} />
-                </Tooltip>
-              </Dropdown>
+              trigger={['click']}
+              menu={{
+                items: [
+                  { key: 'refresh', label: t('card.refreshLocal') },
+                  { key: 'fetch', label: t('card.fetchRemote') }
+                ],
+                onClick: ({ key }) => {
+                  if (key === 'refresh') void refresh()
+                  else if (key === 'fetch') void fetchRemote(git?.root ?? '')
+                }
+              }}
+            >
+              <Tooltip title={t('card.refreshBranches')}>
+                <Button type="text" size="small" icon={<ReloadOutlined />} />
+              </Tooltip>
+            </Dropdown>
           </>
         ) : (
           <Tag>{t('card.notGitRepo')}</Tag>

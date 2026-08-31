@@ -95,6 +95,8 @@ const zhCN = {
     branchTip: '点击快速切换分支',
     localBranches: '本地分支',
     remoteBranches: '远程分支',
+    searchBranches: '搜索分支…',
+    noBranchMatch: '无匹配的分支',
     refreshBranches: '刷新分支列表',
     refreshLocal: '刷新本地',
     fetchRemote: '从远程获取',
@@ -202,7 +204,8 @@ const zhCN = {
       '将把启用的技能写入 .claude/skills/<id>/SKILL.md，并把智能体与技能汇总合并到 {{file}}；重复写入幂等，不会覆盖你手写的其余内容。',
     aiWriteReport: '已写入 {{n}} 个技能；简报 {{file}}（{{action}}）',
     shortcutsBuiltins: '内置按钮',
-    shortcutsBuiltinHint: '「启动 / 停止」是生命周期开关：隐藏后卡片上将无法直接控制运行中任务（仍可通过「⋯」菜单与运行状态标签查看）。',
+    shortcutsBuiltinHint:
+      '「启动 / 停止」是生命周期开关：隐藏后卡片上将无法直接控制运行中任务（仍可通过「⋯」菜单与运行状态标签查看）。',
     shortcutsCustom: '自定义命令',
     shortcutsLabelPh: '按钮名称',
     shortcutsCmdPh: '项目目录下执行的命令，如 pnpm lint',
