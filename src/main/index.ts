@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog } from 'electron'
 import path from 'node:path'
 import { initDb } from './db'
-import { initMainI18n } from './i18n'
+import { initMainI18n, t } from './i18n'
 import { registerIpc, broadcastToWindows } from './ipc'
 import { taskManager } from './tasks'
 import { startAutoBackup } from './backup'
@@ -12,7 +12,8 @@ function createWindow(): BrowserWindow {
     height: 820,
     minWidth: 960,
     minHeight: 640,
-    title: '项目启动器',
+    // 标题读主进程 i18n（已按设置语言初始化），页面加载后由渲染层 document.title 动态接管
+    title: t('app.title'),
     backgroundColor: '#141414',
     autoHideMenuBar: true,
     webPreferences: {

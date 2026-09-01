@@ -9,7 +9,7 @@ const enUS = {
     save: 'Save'
   },
   app: {
-    title: 'Project Launcher',
+    title: 'Local Project Manager',
     search: 'Search projects / paths',
     addProject: 'Add Project',
     scanSettings: 'Scan & Discover',

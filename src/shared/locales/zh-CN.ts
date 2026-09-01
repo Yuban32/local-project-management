@@ -10,7 +10,7 @@ const zhCN = {
     save: '保存'
   },
   app: {
-    title: '项目启动器',
+    title: '本地项目管理器',
     search: '搜索项目 / 路径',
     addProject: '添加项目',
     scanSettings: '扫描发现',
