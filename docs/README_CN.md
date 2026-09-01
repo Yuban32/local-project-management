@@ -10,6 +10,22 @@
 
 ---
 
+## 📸 界面截图
+
+**主界面** — 项目卡片面板
+
+![主界面](readme_images/main_interface.png)
+
+**设置中心** — 语言 / 默认终端 / 数据备份 / AI 库
+
+![设置中心](readme_images/settings_interface.png)
+
+**项目设置** — 通用 / AI Agent / 快捷命令
+
+![项目设置](readme_images/project_settings_interface.png)
+
+---
+
 ## ✨ 功能特性
 
 ### 项目管理

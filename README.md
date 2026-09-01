@@ -10,6 +10,22 @@ Built with **Electron + Vite + React + TypeScript**, **Windows-first**, with mac
 
 ---
 
+## 📸 Screenshots
+
+**Main interface** — the project card panel
+
+![Main interface](docs/readme_images/main_interface.png)
+
+**Settings center** — language / default terminal / data backup / AI library
+
+![Settings center](docs/readme_images/settings_interface.png)
+
+**Project settings** — general / AI agent / shortcut commands
+
+![Project settings](docs/readme_images/project_settings_interface.png)
+
+---
+
 ## ✨ Features
 
 ### Project Management
