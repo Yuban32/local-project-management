@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   AppstoreOutlined,
   CaretRightFilled,
@@ -21,7 +21,7 @@ import type { InputRef } from 'antd'
 import { useShallow } from 'zustand/react/shallow'
 import { useTranslation } from 'react-i18next'
 import type { ItemType } from 'antd/es/menu/interface'
-import type { CardShortcut, ProjectRecord } from '../../../shared/types'
+import type { CardMoreToggle, CardShortcut, ProjectRecord } from '../../../shared/types'
 import { useStore } from '../store'
 
 /** 卡片启动默认脚本：常用 > 启动类 > 首个脚本 */
@@ -70,6 +70,8 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
   const defaultBuild = useMemo(() => pickDefaultBuild(buildScripts), [buildScripts])
   // 快捷方式配置（读 project prop，无需 useShallow）
   const hiddenBuiltins = useMemo(() => project.typeConfig.cardBuiltins ?? {}, [project])
+  // 更多菜单操作上屏为卡片按钮的开关（true = 从「⋯」菜单移到卡片按钮栏）
+  const promotedMore = useMemo(() => project.typeConfig.cardMore ?? {}, [project])
   const customShortcuts = useMemo(() => project.typeConfig.cardShortcuts ?? [], [project])
 
   const runShortcut = (s: CardShortcut): void => {
@@ -186,6 +188,20 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
   }
 
   // ── 更多操作 ──
+  // 打开操作（菜单与卡片按钮共用，避免重复错误处理）
+  const openInFolder = (): void => {
+    void window.api.openPath(project.path)
+  }
+  const openInEditor = (): void => {
+    void window.api
+      .openEditor(project.path)
+      .catch((err: unknown) => message.error(err instanceof Error ? err.message : String(err)))
+  }
+  const openInTerminal = (): void => {
+    void window.api
+      .openTerminal(project.path)
+      .catch((err: unknown) => message.error(err instanceof Error ? err.message : String(err)))
+  }
   const currentGroup = project.groupName || ''
   const moveGroupItems: ItemType[] = [
     { key: 'move:', label: `${t('group.ungrouped')}${currentGroup === '' ? ' ✓' : ''}` },
@@ -196,6 +212,18 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
         label: `${g.name}${currentGroup === g.name ? ' ✓' : ''}`
       }))
   ]
+  const moreActions: Array<{
+    key: CardMoreToggle
+    icon: ReactNode
+    labelKey: string
+    run: () => void
+  }> = [
+    { key: 'folder', icon: <FolderOpenOutlined />, labelKey: 'card.openFolder', run: openInFolder },
+    { key: 'editor', icon: <EditOutlined />, labelKey: 'card.openEditor', run: openInEditor },
+    { key: 'terminal', icon: <CodeOutlined />, labelKey: 'card.openTerminal', run: openInTerminal }
+  ]
+  const moreInMenu = moreActions.filter((a) => promotedMore[a.key] !== true)
+  const moreOnCard = moreActions.filter((a) => promotedMore[a.key] === true)
   const moreMenuItems: ItemType[] = [
     { key: 'settings', icon: <CodeOutlined />, label: t('card.projectSettings') },
     {
@@ -204,9 +232,7 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
       label: t('group.moveSubmenu'),
       children: moveGroupItems
     },
-    { key: 'folder', icon: <FolderOpenOutlined />, label: t('card.openFolder') },
-    { key: 'editor', icon: <EditOutlined />, label: t('card.openEditor') },
-    { key: 'terminal', icon: <CodeOutlined />, label: t('card.openTerminal') },
+    ...moreInMenu.map((a) => ({ key: a.key, icon: a.icon, label: t(a.labelKey) })),
     { type: 'divider' },
     { key: 'remove', icon: <DeleteOutlined />, label: t('card.remove') },
     { key: 'trash', icon: <DeleteOutlined />, label: t('card.trash'), danger: true }
@@ -224,17 +250,9 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
       return
     }
     if (key === 'settings') openProjectSettings(project.id)
-    if (key === 'folder') void window.api.openPath(project.path)
-    if (key === 'editor') {
-      void window.api
-        .openEditor(project.path)
-        .catch((err: unknown) => message.error(err instanceof Error ? err.message : String(err)))
-    }
-    if (key === 'terminal') {
-      void window.api
-        .openTerminal(project.path)
-        .catch((err: unknown) => message.error(err instanceof Error ? err.message : String(err)))
-    }
+    if (key === 'folder') openInFolder()
+    if (key === 'editor') openInEditor()
+    if (key === 'terminal') openInTerminal()
     if (key === 'remove') {
       modal.confirm({
         title: t('card.removeTitle'),
@@ -499,6 +517,12 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
             <Button icon={<EditOutlined />} onClick={() => openPackage(project.id)} />
           </Tooltip>
         )}
+
+        {moreOnCard.map((a) => (
+          <Tooltip key={a.key} title={t(a.labelKey)}>
+            <Button icon={a.icon} onClick={a.run} />
+          </Tooltip>
+        ))}
 
         {customShortcuts.map((s) => (
           <Tooltip key={s.id} title={t('card.customTooltip')}>

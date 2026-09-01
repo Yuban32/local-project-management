@@ -136,6 +136,9 @@ export interface NodeProjectConfig {
 /** 内置卡片操作按钮标识（快捷方式显隐开关的 key） */
 export type BuiltinCardToggle = 'start' | 'stop' | 'build' | 'browser' | 'logs' | 'editPackage'
 
+/** 「更多菜单（⋯）」操作标识（快捷命令 tab 的上屏开关 key，true = 提升为卡片按钮） */
+export type CardMoreToggle = 'folder' | 'editor' | 'terminal'
+
 /** 全局 AI 技能定义（settings 表 'aiLibrary' key 的 skills 数组条目） */
 export interface SkillDef {
   id: string
@@ -204,6 +207,12 @@ export interface ProjectExtras {
   cardShortcuts?: CardShortcut[]
   /** 内置按钮显隐：undefined/true = 显示，false = 隐藏 */
   cardBuiltins?: Partial<Record<BuiltinCardToggle, boolean>>
+  /**
+   * 更多菜单操作上屏为卡片快捷按钮：
+   * true = 显示为卡片按钮并从「⋯」菜单移除；undefined/false = 保留在「⋯」菜单（默认）。
+   * 与 cardBuiltins 语义相反（这是「上屏」而非「隐藏」），故独立字段，避免同一 map 内含义反转。
+   */
+  cardMore?: Partial<Record<CardMoreToggle, boolean>>
 }
 
 /** 各项目类型通用结构：类型专属字段放这里，避免侵入通用表结构 */

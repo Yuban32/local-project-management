@@ -207,6 +207,9 @@ const enUS = {
     shortcutsBuiltins: 'Built-in buttons',
     shortcutsBuiltinHint:
       'Start/Stop are lifecycle controls: hiding them leaves no in-card control for running tasks (still visible via the "⋯" menu and the running-status tag).',
+    shortcutsMore: 'Promote "⋯" items to card buttons',
+    shortcutsMoreHint:
+      'When on, the action appears as a card quick button and is removed from the "⋯" menu. Off (default) keeps it in the "⋯" menu. It never shows in both places at once.',
     shortcutsCustom: 'Custom commands',
     shortcutsLabelPh: 'Button label',
     shortcutsCmdPh: 'Command run in the project dir, e.g. pnpm lint',

@@ -21,6 +21,7 @@ import type {
   AgentOverride,
   AiWriteReport,
   BuiltinCardToggle,
+  CardMoreToggle,
   CardShortcut,
   ProjectAiConfig,
   ProjectTypeConfig
@@ -37,6 +38,13 @@ const BUILTIN_TOGGLES: Array<{ key: BuiltinCardToggle; labelKey: string }> = [
   { key: 'browser', labelKey: 'card.openBrowser' },
   { key: 'logs', labelKey: 'card.logs' },
   { key: 'editPackage', labelKey: 'card.editPackage' }
+]
+
+/** 更多菜单操作上屏为卡片按钮的开关（key → i18n 文案） */
+const MORE_TOGGLES: Array<{ key: CardMoreToggle; labelKey: string }> = [
+  { key: 'folder', labelKey: 'card.openFolder' },
+  { key: 'editor', labelKey: 'card.openEditor' },
+  { key: 'terminal', labelKey: 'card.openTerminal' }
 ]
 
 const EMPTY_AI: ProjectAiConfig = { enabledAgentIds: [], enabledSkillIds: [] }
@@ -60,6 +68,7 @@ export default function ProjectSettingsModal() {
   const [aiCfg, setAiCfg] = useState<ProjectAiConfig | null>(null)
   const [shortcuts, setShortcuts] = useState<CardShortcut[]>([])
   const [builtins, setBuiltins] = useState<Partial<Record<BuiltinCardToggle, boolean>>>({})
+  const [more, setMore] = useState<Partial<Record<CardMoreToggle, boolean>>>({})
   const [writeReport, setWriteReport] = useState<AiWriteReport | null>(null)
   const [writing, setWriting] = useState(false)
 
@@ -84,6 +93,7 @@ export default function ProjectSettingsModal() {
       setAiCfg(cfg.ai ? { ...cfg.ai, overrides: { ...(cfg.ai.overrides ?? {}) } } : null)
       setShortcuts((cfg.cardShortcuts ?? []).map((s) => ({ ...s })))
       setBuiltins(cfg.cardBuiltins ?? {})
+      setMore(cfg.cardMore ?? {})
       setWriteReport(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,7 +136,10 @@ export default function ProjectSettingsModal() {
   const updateOverride = (id: string, patch: Partial<AgentOverride>): void =>
     setAiCfg((prev) => {
       if (!prev) return prev
-      return { ...prev, overrides: { ...prev.overrides, [id]: { ...(prev.overrides?.[id] ?? {}), ...patch } } }
+      return {
+        ...prev,
+        overrides: { ...prev.overrides, [id]: { ...(prev.overrides?.[id] ?? {}), ...patch } }
+      }
     })
 
   const selectedAgents = (aiCfg?.enabledAgentIds ?? []).map((id) => ({
@@ -138,13 +151,17 @@ export default function ProjectSettingsModal() {
   const patchShortcut = (id: string, patch: Partial<CardShortcut>): void =>
     setShortcuts((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)))
 
-  const removeShortcut = (id: string): void => setShortcuts((prev) => prev.filter((s) => s.id !== id))
+  const removeShortcut = (id: string): void =>
+    setShortcuts((prev) => prev.filter((s) => s.id !== id))
 
   const addShortcut = (): void =>
     setShortcuts((prev) => [...prev, { id: crypto.randomUUID(), label: '', command: '' }])
 
   const toggleBuiltin = (key: BuiltinCardToggle, checked: boolean): void =>
     setBuiltins((prev) => ({ ...prev, [key]: checked }))
+
+  const toggleMore = (key: CardMoreToggle, checked: boolean): void =>
+    setMore((prev) => ({ ...prev, [key]: checked }))
 
   const onWrite = async (): Promise<void> => {
     if (!project) return
@@ -209,12 +226,19 @@ export default function ProjectSettingsModal() {
         .filter((s) => s.label?.trim() && s.command?.trim())
         .map((s) => ({ id: s.id, label: s.label.trim(), command: s.command.trim() }))
 
-      // 内置按钮显隐：只保留 false（true = 默认显示，不落库）
+      // 内置按钮显隐：只保留 false（true = 默认显示，不落库）；只认已知 key，顺带清理历史脏字段
       const cleanBuiltins: Partial<Record<BuiltinCardToggle, boolean>> = {}
-      for (const k of Object.keys(builtins) as BuiltinCardToggle[]) {
-        if (builtins[k] === false) cleanBuiltins[k] = false
+      for (const { key } of BUILTIN_TOGGLES) {
+        if (builtins[key] === false) cleanBuiltins[key] = false
       }
       const hasHidden = Object.keys(cleanBuiltins).length > 0
+
+      // 更多菜单上屏：只保留 true（false/undefined = 留在「⋯」菜单，不落库）
+      const cleanMore: Partial<Record<CardMoreToggle, boolean>> = {}
+      for (const { key } of MORE_TOGGLES) {
+        if (more[key] === true) cleanMore[key] = true
+      }
+      const hasMore = Object.keys(cleanMore).length > 0
 
       const typeConfig: ProjectTypeConfig = {
         ...project.typeConfig,
@@ -225,7 +249,8 @@ export default function ProjectSettingsModal() {
         nodeVersion: useNvm ? values.nodeVersion?.trim() || undefined : undefined,
         ai,
         cardShortcuts: cleanShortcuts.length > 0 ? cleanShortcuts : undefined,
-        cardBuiltins: hasHidden ? cleanBuiltins : undefined
+        cardBuiltins: hasHidden ? cleanBuiltins : undefined,
+        cardMore: hasMore ? cleanMore : undefined
       }
       const gitMode: string = values.gitMode ?? 'auto'
       const ok = await updateProject(project.id, {
@@ -263,7 +288,10 @@ export default function ProjectSettingsModal() {
       <Form.Item name="packageManager" label={t('import.pm')}>
         <Select
           options={[
-            { value: 'auto', label: t('card.pmAuto', { pm: project?.detectedPackageManager ?? 'npm' }) },
+            {
+              value: 'auto',
+              label: t('card.pmAuto', { pm: project?.detectedPackageManager ?? 'npm' })
+            },
             ...PM_OPTIONS
           ]}
         />
@@ -297,7 +325,8 @@ export default function ProjectSettingsModal() {
   )
 
   // ── AI Agent tab ──
-  const hasAiSelection = (aiCfg?.enabledAgentIds.length ?? 0) > 0 || (aiCfg?.enabledSkillIds.length ?? 0) > 0
+  const hasAiSelection =
+    (aiCfg?.enabledAgentIds.length ?? 0) > 0 || (aiCfg?.enabledSkillIds.length ?? 0) > 0
   const aiPane = (
     <div>
       <Typography.Title level={5}>{t('projSettings.aiTabTitle')}</Typography.Title>
@@ -373,10 +402,15 @@ export default function ProjectSettingsModal() {
         >
           {t('projSettings.aiWrite')}
         </Button>
-        <span className="settings-label">{t('projSettings.aiWriteHint', { file: aiCfg?.briefFile ?? 'CLAUDE.md' })}</span>
+        <span className="settings-label">
+          {t('projSettings.aiWriteHint', { file: aiCfg?.briefFile ?? 'CLAUDE.md' })}
+        </span>
       </Space>
       {writeReport && (
-        <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: 8, marginBottom: 0 }}>
+        <Typography.Paragraph
+          type="secondary"
+          style={{ fontSize: 12, marginTop: 8, marginBottom: 0 }}
+        >
           <div>根目录：{writeReport.root}</div>
           {writeReport.skills.map((s) => (
             <div key={s.id}>
@@ -407,6 +441,25 @@ export default function ProjectSettingsModal() {
               checked={builtins[key] !== false}
               disabled={key === 'stop' && running.length > 0}
               onChange={(checked) => toggleBuiltin(key, checked)}
+            />
+          </div>
+        ))}
+      </div>
+
+      <Typography.Title level={5} style={{ marginTop: 16 }}>
+        {t('projSettings.shortcutsMore')}
+      </Typography.Title>
+      <div className="prefs-row-desc" style={{ marginBottom: 8 }}>
+        {t('projSettings.shortcutsMoreHint')}
+      </div>
+      <div className="shortcuts-builtins">
+        {MORE_TOGGLES.map(({ key, labelKey }) => (
+          <div className="shortcuts-builtin-row" key={key}>
+            <span className="settings-label">{t(labelKey)}</span>
+            <Switch
+              size="small"
+              checked={more[key] === true}
+              onChange={(checked) => toggleMore(key, checked)}
             />
           </div>
         ))}

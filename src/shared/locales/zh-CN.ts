@@ -206,6 +206,9 @@ const zhCN = {
     shortcutsBuiltins: '内置按钮',
     shortcutsBuiltinHint:
       '「启动 / 停止」是生命周期开关：隐藏后卡片上将无法直接控制运行中任务（仍可通过「⋯」菜单与运行状态标签查看）。',
+    shortcutsMore: '更多菜单 → 卡片按钮',
+    shortcutsMoreHint:
+      '开启后对应操作显示为卡片上的快捷按钮，并从「⋯」菜单移除；关闭（默认）则保留在「⋯」菜单中，两者不会同时出现。',
     shortcutsCustom: '自定义命令',
     shortcutsLabelPh: '按钮名称',
     shortcutsCmdPh: '项目目录下执行的命令，如 pnpm lint',
