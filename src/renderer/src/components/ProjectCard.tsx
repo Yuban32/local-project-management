@@ -364,6 +364,7 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
                 </div>
               )}
               menu={{
+                // 顶部有搜索框，内层菜单高度由 .branch-picker .ant-dropdown-menu 规则再让出输入框空间
                 items: branchMenuItems,
                 onClick: ({ key }) => {
                   if (key === '__no-match' || key.startsWith('g-')) return

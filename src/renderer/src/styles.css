@@ -4,6 +4,13 @@ body,
   height: 100%;
 }
 
+:root {
+  /* 顶部 header 占用高度（沿用原 hook 的 96px 预留） */
+  --app-header-h: 96px;
+  /* 所有下拉弹层最大高度 = 可视内容区((100vh - header)) 的 30%，保证不超出窗口 */
+  --dropdown-max-h: calc((100vh - var(--app-header-h)) * 0.3);
+}
+
 body {
   margin: 0;
   overflow: hidden;
@@ -259,7 +266,7 @@ body {
   cursor: pointer;
 }
 
-/* 分支下拉：顶部搜索框 + 可滚动分支列表 */
+/* 分支下拉：顶部搜索框 + 分支列表，总高度 ≤ 可视内容区 30% */
 .branch-picker {
   padding: 4px;
   min-width: 220px;
@@ -268,8 +275,22 @@ body {
   width: 100%;
   margin-bottom: 4px;
 }
+
+/* 分支下拉内层菜单：再让出顶部搜索框（≈36px），保证「输入框+列表」总高 ≤30% */
 .branch-picker .ant-dropdown-menu {
-  max-height: 320px;
+  max-height: calc(var(--dropdown-max-h) - 36px);
+  overflow-y: auto;
+}
+
+/* 所有 Dropdown 弹层菜单：最高 = 可视内容区(100vh - header) 的 30%，超出内部滚动 */
+.ant-dropdown-menu {
+  max-height: var(--dropdown-max-h);
+  overflow-y: auto;
+}
+
+/* Select / AutoComplete 选项列表：同样 ≤ 可视内容区 30%（覆盖 antd 默认 256px） */
+.ant-select-listbox {
+  max-height: var(--dropdown-max-h) !important;
   overflow-y: auto;
 }
 
