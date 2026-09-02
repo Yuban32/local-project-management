@@ -20,7 +20,7 @@
     "prepare": "husky"
   },
   "build": {
-    "appId": "com.fjw.local-project-management",
+    "appId": "com.yuban32.local-project-management",
     "productName": "LocalProjectManagement",
     "directories": {
       "output": "release"

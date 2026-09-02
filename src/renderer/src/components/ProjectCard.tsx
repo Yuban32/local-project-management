@@ -219,7 +219,7 @@ export default function ProjectCard({ project }: { project: ProjectRecord }) {
     run: () => void
   }> = [
     { key: 'folder', icon: <FolderOpenOutlined />, labelKey: 'card.openFolder', run: openInFolder },
-    { key: 'editor', icon: <EditOutlined />, labelKey: 'card.openEditor', run: openInEditor },
+    { key: 'editor', icon: <CodeOutlined />, labelKey: 'card.openEditor', run: openInEditor },
     { key: 'terminal', icon: <CodeOutlined />, labelKey: 'card.openTerminal', run: openInTerminal }
   ]
   const moreInMenu = moreActions.filter((a) => promotedMore[a.key] !== true)
